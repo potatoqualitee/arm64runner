@@ -106,16 +106,24 @@ function heading()
     echo "-----------------------------------------"
 }
 
+# TODO:
+# - Get rid of -p:LangVersion=10.0, only needed because of https://github.com/dotnet/sdk/issues/19521.
+#   Some warnings might need to be removed as well.
+# - Get rid of -p:PublishReadyToRun=false, only needed because M1 ARM64 AOT compilation is buggy.
+DOTNET60_OPTIONS='-p:LangVersion=10.0 -p:PublishReadyToRun=false -p:WarningsNotAsErrors="CS0618,SYSLIB0013,SYSLIB0014,CA1416,CA2200"'
+DOTNET60_BUILD_OPTIONS_ESCAPED_TEMP="${DOTNET60_OPTIONS//,/%2c}"
+DOTNET60_BUILD_OPTIONS_ESCAPED="${DOTNET60_BUILD_OPTIONS_ESCAPED_TEMP//\"/\\%22}"
+
 function build ()
 {
     heading "Building ..."
-    dotnet msbuild -t:Build -p:PackageRuntime="${RUNTIME_ID}" -p:BUILDCONFIG="${BUILD_CONFIG}" -p:RunnerVersion="${RUNNER_VERSION}" ./dir.proj || failed build
+    dotnet msbuild -t:Build $DOTNET60_OPTIONS -p:PackageRuntime="${RUNTIME_ID}" -p:BUILDCONFIG="${BUILD_CONFIG}" -p:RunnerVersion="${RUNNER_VERSION}" ./dir.proj || failed build
 }
 
 function layout ()
 {
     heading "Create layout ..."
-    dotnet msbuild -t:layout -p:PackageRuntime="${RUNTIME_ID}" -p:BUILDCONFIG="${BUILD_CONFIG}" -p:RunnerVersion="${RUNNER_VERSION}" ./dir.proj || failed build
+    dotnet msbuild -t:layout $DOTNET60_OPTIONS -p:PackageRuntime="${RUNTIME_ID}" -p:BUILDCONFIG="${BUILD_CONFIG}" -p:RunnerVersion="${RUNNER_VERSION}" ./dir.proj || failed build
 
     #change execution flag to allow running with sudo
     if [[ ("$CURRENT_PLATFORM" == "linux") || ("$CURRENT_PLATFORM" == "darwin") ]]; then
@@ -137,7 +145,7 @@ function runtest ()
         ulimit -n 1024
     fi
 
-    dotnet msbuild -t:test -p:PackageRuntime="${RUNTIME_ID}" -p:BUILDCONFIG="${BUILD_CONFIG}" -p:RunnerVersion="${RUNNER_VERSION}" ./dir.proj || failed "failed tests" 
+    dotnet msbuild -t:test -p:DOTNET60_BUILD_OPTIONS="${DOTNET60_BUILD_OPTIONS_ESCAPED}" -p:PackageRuntime="${RUNTIME_ID}" -p:BUILDCONFIG="${BUILD_CONFIG}" -p:RunnerVersion="${RUNNER_VERSION}" ./dir.proj || failed "failed tests" 
 }
 
 function package ()
