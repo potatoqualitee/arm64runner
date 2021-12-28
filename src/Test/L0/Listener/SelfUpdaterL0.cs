@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using Xunit;
 using System.IO;
 
+#if !(OS_OSX && ARM64)
+
 namespace GitHub.Runner.Common.Tests.Listener
 {
     public sealed class SelfUpdaterL0
@@ -176,3 +178,5 @@ namespace GitHub.Runner.Common.Tests.Listener
         }
     }
 }
+
+#endif
