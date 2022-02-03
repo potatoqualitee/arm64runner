@@ -65,7 +65,7 @@ namespace GitHub.Runner.Listener
             {
                 Id = _settings.AgentId,
                 Name = _settings.AgentName,
-                Version = BuildConstants.RunnerPackage.Version,
+                Version = "2.999.9",
                 OSDescription = RuntimeInformation.OSDescription,
             };
             string sessionName = $"{Environment.MachineName ?? "RUNNER"}";
